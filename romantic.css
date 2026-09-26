@@ -1,0 +1,986 @@
+:root {
+  /* --- twilight invitation (Act 1 + the tree's moonrise) --- */
+  --paper-0:  #241a4c;
+  --paper-1:  #1d1440;
+  --paper-2:  #150f33;
+
+  /* --- accents / ink --- */
+  --gold-1:    #ffcf6a;
+  --gold-2:    #e8a23d;
+  --ink:       #ecdfff;   /* moonlit lavender ink   */
+
+  --ease-out:  cubic-bezier(.2,.7,.2,1);
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+html, body{ height:100%; }
+
+body{
+  background:#07030f;                 /* seam colour under everything */
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  cursor:auto;
+}
+
+.scene{ position:fixed; inset:0; overflow:hidden; }
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+/* ============================================================
+   THE TREE CANVAS (Act 4) — z0, transparent until it plays
+   ============================================================ */
+.tree{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  display:block;
+  z-index:1;
+}
+
+/* ============================================================
+   ACT 1 — THE INVITATION
+   ============================================================ */
+.hero{
+  position:absolute; inset:0;
+  z-index:3;
+  overflow:hidden;
+  cursor:pointer;
+}
+.hero:focus-visible{ outline:none; }
+.hero:focus-visible .heart__svg{
+  filter:
+    drop-shadow(0 0 0 3px rgba(255,255,255,.85))
+    drop-shadow(0 10px 26px rgba(140,40,120,.5));
+}
+/* the twilight field the heart sits on */
+.hero__bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(120% 88% at 50% 24%, #2d2158 0%, var(--paper-0) 38%, var(--paper-1) 74%, var(--paper-2) 100%);
+}
+.hero__bg::after{               /* a soft pool of moonlight behind the heart */
+  content:""; position:absolute; left:50%; top:44%;
+  width:min(78vw,720px); aspect-ratio:1; transform:translate(-50%,-50%);
+  background:radial-gradient(circle, rgba(255,214,238,.3), rgba(168,140,255,.18) 46%, transparent 70%);
+  filter:blur(6px);
+}
+
+/* drifting light motes (JS fills this with a few spans) */
+.hero__motes{ position:absolute; inset:0; pointer-events:none; }
+.mote{
+  position:absolute; border-radius:50%;
+  background:radial-gradient(circle, rgba(240,232,255,.9), rgba(180,160,255,.15) 55%, transparent 72%);
+  will-change:transform, opacity;
+}
+
+.hero__eyebrow{
+  position:absolute; top:13%; left:0; right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-style:italic; font-weight:600;
+  font-size:clamp(15px, 3.6vw, 26px);
+  letter-spacing:.06em;
+  color:#ffd3e8;
+  text-shadow:0 1px 12px rgba(12,6,40,.85);
+  opacity:0;                          /* GSAP reveals */
+}
+
+/* ---- the target heart (GSAP animates .target on the hit → fall → burst) ---- */
+.targetWrap{
+  position:absolute; top:33%; left:0; right:0;
+  display:flex; justify-content:center;
+  transform:translateY(-50%);         /* centre at 33% — wrap is NOT animated */
+  pointer-events:none;
+}
+.target{
+  position:relative;
+  width:clamp(120px, 27vw, 208px);
+  aspect-ratio:100/92;
+  will-change:transform;
+  transform-origin:50% 60%;
+}
+.target__heart{ position:absolute; inset:0; display:block; }
+
+/* radial bloom behind the heart — swells on the beat */
+.heart__glow{
+  position:absolute; left:50%; top:52%;
+  width:230%; aspect-ratio:1; transform:translate(-50%,-50%) scale(1);
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,150,205,.38), rgba(150,120,255,.24) 46%, transparent 70%);
+  filter:blur(4px);
+  pointer-events:none;
+  will-change:transform, opacity;
+}
+.heart__svg{
+  width:100%; height:100%; display:block;
+  transform-origin:50% 60%;           /* the beat scales THIS, not the wrapper */
+  filter:
+    drop-shadow(0 10px 26px rgba(140,40,120,.5))
+    drop-shadow(0 3px 8px rgba(10,5,35,.6));
+  will-change:transform;
+}
+
+/* the touch ripple that blooms where the heart is tapped */
+.ripple{
+  position:absolute;
+  width:96px; height:96px; margin:-48px 0 0 -48px;
+  border-radius:50%;
+  border:1.5px solid rgba(255,220,240,.65);
+  background:radial-gradient(circle, rgba(255,190,225,.5), rgba(150,90,255,0) 70%);
+  pointer-events:none; z-index:4;
+  will-change:transform, opacity;
+}
+
+/* ---- the touch hint ---- */
+.hero__hint{
+  position:absolute; bottom:8.5%; left:0; right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-weight:600; font-style:italic;
+  font-size:clamp(13px, 3.1vw, 19px);
+  letter-spacing:.16em; text-transform:uppercase;
+  color:#c9b8f0;
+  text-shadow:0 1px 10px rgba(12,6,40,.8);
+  opacity:0;                          /* GSAP reveals */
+}
+
+/* ============================================================
+   ACT 2 — THE FLOOD (the moonflower burst)
+   ============================================================ */
+.flood{
+  position:absolute; left:50%; top:50%;
+  width:140px; height:140px; margin:-70px 0 0 -70px;
+  border-radius:50%;
+  background:radial-gradient(circle at 40% 34%, #cdb9ff, #7c5bf0 46%, #3b2790 100%);
+  z-index:5;
+  opacity:0; transform:scale(.001);
+  will-change:transform, opacity;
+  pointer-events:none;
+}
+
+/* ============================================================
+   ACT 3 — THE WISH FIELD (moonlit world + kinetic type)
+   ============================================================ */
+.field{
+  position:absolute; inset:0;
+  z-index:4;                          /* below the flood; revealed once it covers */
+  opacity:0;
+  /* purely decorative — must never intercept the tap on the heart beneath it.
+     An opacity:0 element is still hit-testable, so without this the invisible
+     field (z4, above the hero z3) swallows every Act-1 tap. */
+  pointer-events:none;
+  overflow:hidden;
+  background:
+    radial-gradient(120% 100% at 50% 8%, #4a3588 0%, #37296c 42%, #271b54 78%, #150e38 100%);
+  color:#fff;
+}
+.blob{
+  position:absolute; border-radius:50%;
+  filter:blur(46px); opacity:0;
+  mix-blend-mode:screen;
+  will-change:transform, opacity;
+}
+.blob--1{ width:58vmax; height:58vmax; left:-18vmax; top:-16vmax;
+  background:radial-gradient(circle, rgba(150,120,255,.9), transparent 62%); }
+.blob--2{ width:46vmax; height:46vmax; right:-14vmax; top:22vmax;
+  background:radial-gradient(circle, rgba(110,90,230,.75), transparent 64%); }
+.blob--3{ width:52vmax; height:52vmax; left:24vmax; bottom:-22vmax;
+  background:radial-gradient(circle, rgba(80,40,170,.8), transparent 66%); }
+
+/* faint grid — a hair of parallax gives the flood depth, not flatness */
+.fgrid{
+  position:absolute; inset:-6%;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size:clamp(38px,7vw,74px) clamp(38px,7vw,74px);
+  will-change:transform;
+}
+.fvignette{
+  position:absolute; inset:0;
+  background:radial-gradient(128% 96% at 50% 44%, transparent 50%, rgba(6,3,28,.55) 100%);
+}
+
+/* the camera — everything on the flood rides a slow continuous push */
+.camera{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  gap:clamp(4px,1.2vh,12px);
+  padding:0 6vw; text-align:center;
+  will-change:transform;
+}
+.kEyebrow{
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-style:italic; font-weight:500;
+  font-size:clamp(15px, 3.6vw, 27px);
+  letter-spacing:.08em;
+  color:#d8c9ff;
+  opacity:0; transform:translateY(10px);
+  margin-bottom:clamp(2px,1vh,10px);
+}
+
+.headline{ font-family:"Fraunces", Georgia, serif; line-height:.92; position:relative; }
+/* light flash behind the words the moment they slam together */
+.hl__flash{
+  position:absolute; left:50%; top:50%;
+  width:130%; aspect-ratio:1;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(255,224,180,.5), rgba(255,160,210,.2) 45%, transparent 70%);
+  opacity:0; pointer-events:none; z-index:-1;
+  will-change:transform, opacity;
+}
+/* a gold-rose shimmer that sweeps across the words once they land */
+.hl__sheen{
+  position:absolute; top:-8%; bottom:-12%; left:-22%; right:-22%;
+  background:linear-gradient(100deg, transparent 32%, rgba(255,214,150,.34) 47%, rgba(255,160,200,.4) 50%, rgba(255,214,150,.34) 53%, transparent 68%);
+  pointer-events:none;
+  transform:translateX(-130%) skewX(-12deg);
+  will-change:transform;
+}
+/* shockwave ring that bursts outward when the last letter lands */
+.hl__shock{
+  position:absolute; left:50%; top:50%;
+  width:64px; height:64px; margin:-32px 0 0 -32px;
+  border-radius:50%;
+  border:2px solid rgba(255,205,235,.85);
+  box-shadow:0 0 18px rgba(255,150,200,.6), inset 0 0 12px rgba(255,150,200,.4);
+  opacity:0; pointer-events:none;
+  will-change:transform, opacity;
+}
+.hl__line{ display:block; }
+/* the mask keeps the glyphs hidden only while parked — the meteor
+   letters fly in from off-screen, so the mask lets them through */
+.mask{
+  display:inline-block; overflow:visible;
+  padding:.14em .06em;
+  margin:-.14em -.06em;
+}
+.hl__word{
+  display:inline-block;
+  font-weight:900;
+  font-size:clamp(56px, 16vw, 190px);
+  letter-spacing:-.02em;
+  color:#fdfbff;
+  text-shadow:0 6px 34px rgba(8,4,32,.55), 0 2px 3px rgba(16,8,48,.6);
+}
+/* each glyph hinges up on its own bottom edge, under its own perspective */
+.hl__ch{ display:inline-block; will-change:transform; }
+
+/* gold hand-drawn underline under the second word */
+.uline{
+  width:clamp(150px, 40vw, 380px); height:auto;
+  margin-top:clamp(4px,1.4vh,14px);
+  color:var(--gold-1);
+  filter:drop-shadow(0 2px 8px rgba(255,180,90,.5));
+}
+.kSub{
+  margin-top:clamp(12px,2.4vh,26px);
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-weight:500; font-style:italic;
+  font-size:clamp(14px, 3.4vw, 24px);
+  letter-spacing:.05em;
+  color:#cfc0f8;
+  opacity:0; transform:translateY(10px);
+}
+
+/* cinema curtains — black halves from the sides; they split apart from the
+   centre seam to reveal the wish */
+.curtain{
+  position:absolute; top:0; bottom:0; width:50vw;
+  background:#07030f; z-index:3; will-change:transform; pointer-events:none;
+}
+.curtain--left{ left:0; }
+.curtain--right{ right:0; }
+/* the rose-gold light strip that rides the inner edge as the curtains part */
+.curtain__edge{
+  position:absolute; top:0; bottom:0; width:2px;
+  background:linear-gradient(180deg, transparent, rgba(255,150,190,.9) 30%, rgba(255,207,106,.9) 70%, transparent);
+  box-shadow:0 0 14px rgba(255,150,190,.7), 0 0 28px rgba(255,190,130,.3);
+  opacity:0; pointer-events:none;
+}
+.curtain--left .curtain__edge{ right:0; }
+.curtain--right .curtain__edge{ left:0; }
+
+/* ============================================================
+   THE HANDOFF BLOOM (moonlit wish → moonrise of the tree)
+   ============================================================ */
+.bloom{
+  position:absolute; left:50%; top:50%;
+  width:60px; height:60px; margin:-30px 0 0 -30px;
+  border-radius:50%;
+  background:radial-gradient(circle, #fff 0%, #f0e8ff 30%, rgba(196,168,255,.85) 55%, rgba(140,110,240,0) 74%);
+  z-index:8; opacity:0; transform:scale(.001);
+  will-change:transform, opacity; pointer-events:none;
+}
+
+/* ============================================================
+   ACT 4 — YOU & ME (over the moonlit trees)
+   ============================================================ */
+.duet{
+  position:absolute; inset:0;
+  z-index:6;
+  pointer-events:none;
+  color:var(--ink);
+  visibility:hidden;
+}
+.duet.is-in{ visibility:visible; }
+.duet__eyebrow{
+  position:absolute; top:4.5%; left:0; right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-style:italic; font-weight:600;
+  font-size:clamp(13px, 3.2vw, 24px);
+  letter-spacing:.05em; color:#e3d4ff;
+  text-shadow:0 1px 2px rgba(12,6,40,.9), 0 0 10px rgba(12,6,40,.9);
+  opacity:0; transform:translateY(10px);
+  transition:opacity .8s ease, transform .9s var(--ease-out);
+}
+.duet__name{
+  position:absolute;
+  z-index:2;
+  font-family:"Great Vibes", cursive; font-weight:400;
+  font-size:clamp(40px, 7.6vw, 78px);
+  line-height:1;
+  clip-path:inset(0 100% -30% -10%);
+  opacity:0;
+}
+/* soft rose halo so the word glows against the midnight sky */
+.duet__name::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:2em; height:1.1em;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(58% 58% at 50% 50%, rgba(190,150,255,.5), rgba(120,90,230,.2) 55%, transparent 78%);
+  filter:blur(12px);
+  z-index:-1;
+  animation:duetHalo 4s ease-in-out 1.6s infinite;
+}
+/* a tiny gold sparkle above each word */
+.duet__name::after{
+  content:"\2726";
+  position:absolute; right:-.3em; top:-.14em;
+  font-size:.34em; line-height:1;
+  color:#ffe1a0; text-shadow:0 0 10px rgba(255,205,120,.95);
+  opacity:0;
+}
+.duet__name span{
+  display:block;
+  background:linear-gradient(180deg, #ffc9e2 0%, #ef86b8 52%, #b45cd6 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:
+    drop-shadow(0 1px 1px rgba(255,236,255,.35))
+    drop-shadow(0 2px 8px rgba(10,5,30,.85));
+  transform-origin:50% 100%;
+}
+.duet__heart{
+  position:absolute;
+  width:clamp(26px, 4vw, 54px);
+  z-index:2;
+  filter:drop-shadow(0 0 10px rgba(255,110,155,.75)) drop-shadow(0 0 26px rgba(255,110,155,.4));
+  opacity:0;
+}
+.duet__heart svg{ display:block; width:100%; height:auto; transform-origin:50% 50%; }
+.duet__sub{
+  position:absolute; bottom:8%; left:0; right:0;
+  text-align:center;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-weight:600; font-style:italic;
+  font-size:clamp(12px, 2.9vw, 20px);
+  letter-spacing:.03em; color:#d5c4f5;
+  text-shadow:0 1px 2px rgba(12,6,40,.9), 0 0 10px rgba(12,6,40,.9);
+  opacity:0; transform:translateY(12px);
+  transition:opacity .8s ease, transform .9s var(--ease-out);
+}
+.duet.is-in .duet__eyebrow{ opacity:1; transform:translateY(0); transition-delay:.35s; }
+.duet.is-in .duet__name{ animation:duetWrite 1.1s cubic-bezier(.62,.04,.24,1) forwards; }
+.duet.is-in .duet__name--you{ animation-delay:.55s; }
+.duet.is-in .duet__name--me{ animation-delay:.68s; }
+.duet.is-in .duet__name span{ animation:duetBreathe 4s ease-in-out 3s infinite; }
+.duet.is-in .duet__name::after{ animation:duetSpark 2.8s ease-in-out 1.5s infinite; }
+.duet.is-in .duet__heart{ animation:duetHeartIn .6s cubic-bezier(.34,1.56,.64,1) 1.05s forwards; }
+.duet.is-in .duet__heart svg{ animation:duetPulse 2.4s ease-in-out 1.9s infinite; }
+.duet.is-in .duet__sub{ opacity:1; transform:translateY(0); transition-delay:1.2s; }
+@keyframes duetWrite{ from{ opacity:0; clip-path:inset(0 100% -30% -10%); } to{ opacity:1; clip-path:inset(0 -10% -30% -10%); } }
+@keyframes duetBreathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.035); } }
+@keyframes duetHalo{ 0%,100%{ opacity:.5; } 50%{ opacity:1; } }
+@keyframes duetHeartIn{ from{ opacity:0; transform:scale(.3); } to{ opacity:1; transform:scale(1); } }
+@keyframes duetPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.16); } }
+@keyframes duetSpark{ 0%,100%{ opacity:0; transform:scale(.4) rotate(-14deg); } 45%{ opacity:1; transform:scale(1) rotate(8deg); } }
+
+/* ============================================================
+   ACT 5 — THE GRAND FINALE (heart in the sky)
+   ============================================================ */
+.finale{
+  position:absolute; inset:0;
+  z-index:6;
+  pointer-events:none;
+  display:flex; align-items:flex-start; justify-content:center;
+  visibility:hidden;
+}
+.finale.is-in{ visibility:visible; }
+.finale__word{
+  position:relative;
+  margin-top:39%;
+  font-family:"Great Vibes", cursive; font-weight:400;
+  font-size:clamp(52px, 9vw, 96px);
+  line-height:1;
+  background:linear-gradient(180deg, #ffe3f0 0%, #ff8fc0 55%, #e86fb0 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(10,5,30,.9)) drop-shadow(0 0 18px rgba(255,110,160,.55));
+  opacity:0;
+  clip-path:inset(-20% 50% -20% 50%);
+  transform:scale(1.18);
+}
+.finale.is-in .finale__word{ animation:finaleShow 1.15s cubic-bezier(.22,1,.36,1) .2s forwards; }
+.finale__word::before{
+  content:""; position:absolute; left:50%; top:50%;
+  width:1.5em; height:1em;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(55% 55% at 50% 50%, rgba(255,150,190,.45), transparent 72%);
+  filter:blur(16px);
+  z-index:-1;
+  animation:duetHalo 3.6s ease-in-out 1.2s infinite;
+}
+@keyframes finaleShow{
+  from{ opacity:0; clip-path:inset(-20% 50% -20% 50%); transform:scale(1.18); }
+  to{ opacity:1; clip-path:inset(-20% -8% -20% -8%); transform:scale(1); }
+}
+
+/* ============================================================
+   ACT 6 — TWO BUTTERFLIES (a moonlit duet, one sky)
+   ============================================================ */
+.act6{
+  position:absolute; inset:0;
+  z-index:6;
+  visibility:hidden; opacity:0;
+  transition:opacity 1.1s ease;
+}
+.act6.is-in{ visibility:visible; opacity:1; }
+.act6 canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+.act6__text{
+  position:absolute; inset:0; z-index:2;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center;
+  pointer-events:none;
+}
+.act6__eyebrow{
+  position:relative;
+  font-family:"Cormorant Garamond", Georgia, serif;
+  font-style:italic; font-weight:600;
+  font-size:clamp(11px, 2.4vw, 17px);
+  letter-spacing:.05em; color:#e3d4ff;
+  text-shadow:0 1px 2px rgba(12,6,40,.9), 0 0 10px rgba(12,6,40,.9);
+  opacity:0; transform:translateY(12px); filter:blur(5px);
+  transition:opacity .9s ease 1.0s, transform 1s cubic-bezier(.2,.7,.2,1) 1.0s, filter .9s ease 1.0s;
+}
+.act6__eyebrow::before, .act6__eyebrow::after{
+  content:"\2726";
+  position:absolute; top:50%; transform:translateY(-50%);
+  font-size:.9em; color:#ffe1a0; text-shadow:0 0 10px rgba(255,205,120,.95);
+  opacity:0;
+}
+.act6__eyebrow::before{ right:calc(100% + .6em); }
+.act6__eyebrow::after{ left:calc(100% + .6em); }
+.act6__word{
+  position:relative;
+  font-family:"Great Vibes", cursive; font-weight:400;
+  font-size:clamp(34px, 6.5vw, 62px);
+  line-height:1.05;
+  margin:.14em 0 .1em;
+  opacity:0;
+}
+.a6ch{
+  display:inline-block;
+  background:linear-gradient(180deg, #ffc9e2 0%, #ef86b8 52%, #b45cd6 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(10,5,30,.9)) drop-shadow(0 0 18px rgba(255,110,160,.5));
+  opacity:0;
+  transform:translateY(26px) rotate(-8deg) scale(.7);
+}
+.act6__word::after{
+  content:""; position:absolute; top:-12%; bottom:-12%; left:-55%; width:45%;
+  background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.6), rgba(255,255,255,0));
+  filter:blur(5px);
+  opacity:0;
+  pointer-events:none;
+}
+.act6__ring{
+  position:absolute; left:50%; top:50%;
+  width:min(210%, 480px); aspect-ratio:1;
+  transform:translate(-50%,-50%) scale(.2);
+  border:2px solid rgba(255,214,170,.9);
+  border-radius:50%;
+  box-shadow:0 0 24px rgba(255,190,130,.5), inset 0 0 18px rgba(255,190,130,.25);
+  opacity:0;
+  pointer-events:none;
+}
+.act6__ring::after{
+  content:""; position:absolute; inset:0;
+  border:2px solid rgba(255,235,255,.7);
+  border-radius:50%;
+  box-shadow:0 0 18px rgba(255,235,255,.45);
+}
+.act6__rule{
+  width:clamp(120px, 30vw, 240px); height:2px;
+  margin:.1em 0 .55em;
+  background:linear-gradient(90deg, var(--gold-2), rgba(255,143,175,0));
+  box-shadow:0 0 8px rgba(255,236,240,.8);
+  transform:scaleX(0); transform-origin:left center;
+  opacity:0;
+  transition:transform .9s cubic-bezier(.2,.7,.2,1) 2.3s, opacity .6s ease 2.3s;
+}
+.act6.is-in .act6__word{ opacity:1; }
+.act6.is-in .a6ch{ animation:a6chIn .75s cubic-bezier(.34,1.56,.64,1) forwards; }
+.act6.is-in .act6__word{ animation:a6Breathe 4.2s ease-in-out 3s infinite; }
+.act6.is-in .act6__word::after{ animation:a6Sheen 1.3s ease 2.6s 2; }
+.act6.is-in .act6__ring{ animation:a6Ring 1s cubic-bezier(.16,.84,.44,1) 3.1s forwards; }
+.act6.is-in .act6__ring::after{ animation:a6Ring 1s cubic-bezier(.16,.84,.44,1) 3.35s forwards; }
+.act6.is-in .act6__rule{ transform:scaleX(1); opacity:1; }
+.act6.is-in .act6__eyebrow{ opacity:1; transform:translateY(0); filter:blur(0); }
+.act6.is-in .act6__eyebrow::before{ animation:duetSpark 2.8s ease-in-out 1.3s infinite; }
+.act6.is-in .act6__eyebrow::after{ animation:duetSpark 2.8s ease-in-out 1.9s infinite; }
+@keyframes a6chIn{ to{ opacity:1; transform:translateY(0) rotate(0deg) scale(1); } }
+@keyframes a6Breathe{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.02); } }
+@keyframes a6Sheen{
+  0%{ left:-55%; opacity:0; }
+  12%{ opacity:1; }
+  88%{ opacity:1; }
+  100%{ left:155%; opacity:0; }
+}
+@keyframes a6Ring{
+  0%{ opacity:0; transform:translate(-50%,-50%) scale(.2); }
+  12%{ opacity:.9; }
+  100%{ opacity:0; transform:translate(-50%,-50%) scale(1.35); }
+}
+
+/* ============================================================
+   REPLAY & TOP CONTROLS
+   ============================================================ */
+.controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #e6dcfc;
+  background: rgba(28, 18, 56, 0.72);
+  border: 1px solid rgba(200, 175, 255, 0.24);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.ctrl-btn:hover {
+  color: #ffffff;
+  background: rgba(45, 30, 88, 0.88);
+  border-color: rgba(255, 200, 240, 0.45);
+  box-shadow: 0 6px 22px rgba(180, 80, 220, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.ctrl-btn:active {
+  transform: translateY(1px);
+}
+
+.ctrl-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.ctrl-btn:hover svg {
+  transform: scale(1.1);
+}
+
+.replay {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  z-index: 7;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px 9px 13px;
+  border-radius: 999px;
+  font: 600 12.5px/1 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d4c5f5;
+  background: rgba(34, 24, 74, 0.72);
+  border: 1px solid rgba(190, 170, 255, 0.22);
+  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-out), background 0.3s ease;
+}
+.replay.is-shown { opacity: 1; transform: translateY(0); }
+.replay:hover { background: rgba(46, 34, 96, 0.9); border-color: rgba(255, 210, 245, 0.4); }
+.replay svg { opacity: 0.85; }
+
+/* ============================================================
+   PERSONALIZATION MODAL & LOVE LETTER DIALOG
+   ============================================================ */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.modal.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 4, 22, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal__card {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(145deg, rgba(32, 22, 64, 0.92) 0%, rgba(20, 14, 42, 0.96) 100%);
+  border: 1px solid rgba(220, 185, 255, 0.28);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: scale(0.92) translateY(12px);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #eedfff;
+  z-index: 2;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal.is-active .modal__card {
+  transform: scale(1) translateY(0);
+}
+
+.modal__close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #d6c5f5;
+  font-size: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal__close:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.modal__title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #ffd6eb;
+  margin-bottom: 6px;
+}
+
+.modal__subtitle {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #b7a5dc;
+  margin-bottom: 22px;
+  line-height: 1.4;
+}
+
+.modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #d6c8f5;
+  text-transform: uppercase;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(190, 160, 240, 0.3);
+  background: rgba(14, 8, 32, 0.6);
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #ff8ab6;
+  box-shadow: 0 0 0 3px rgba(255, 138, 182, 0.2);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #e63973 0%, #b81d52 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(230, 57, 115, 0.4);
+}
+
+.btn--primary:hover {
+  background: linear-gradient(135deg, #ff4c88 0%, #d42764 100%);
+  box-shadow: 0 6px 20px rgba(230, 57, 115, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn--secondary {
+  background: transparent;
+  color: #cbbbe9;
+  border: 1px solid rgba(190, 160, 240, 0.3);
+}
+
+.btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+/* ============================================================
+   WAX-SEALED LOVE LETTER CARD
+   ============================================================ */
+.modal--letter .letter-card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  z-index: 2;
+  perspective: 1000px;
+}
+
+.envelope {
+  position: relative;
+  background: #fdfbf7;
+  background-image: radial-gradient(#f0e6d6 1px, transparent 0);
+  background-size: 16px 16px;
+  border-radius: 16px;
+  padding: 36px 32px 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 40px rgba(180, 150, 110, 0.2);
+  border: 1px solid #e2d2b8;
+  color: #2b1a0e;
+  transform: scale(0.94);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal.is-active .envelope {
+  transform: scale(1);
+}
+
+.envelope__stamp {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #e63946, #9b111e);
+  color: #ffd1d5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 10px rgba(155, 17, 30, 0.4);
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+}
+
+.envelope__header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0d0b6;
+  padding-bottom: 12px;
+}
+
+.envelope__to {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  color: #7a5c40;
+}
+
+.letter-paper__title {
+  font-family: "Great Vibes", cursive;
+  font-size: 38px;
+  color: #8c1d40;
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+
+.letter-paper__body {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 20px;
+  line-height: 1.6;
+  color: #382515;
+  white-space: pre-wrap;
+  margin-bottom: 24px;
+}
+
+.letter-paper__sign {
+  font-family: "Great Vibes", cursive;
+  font-size: 32px;
+  color: #8c1d40;
+  text-align: right;
+  line-height: 1.3;
+}
+
+/* ============================================================
+   THE LENS — grain + vignette over every act
+   ============================================================ */
+.grade{ position:absolute; inset:0; z-index:9; pointer-events:none; }
+.grade__vignette{
+  position:absolute; inset:0;
+  background:radial-gradient(125% 95% at 50% 42%, transparent 54%, rgba(6,3,28,.2) 84%, rgba(3,2,18,.4) 100%);
+  mix-blend-mode:multiply;
+}
+.grade__grain{
+  position:absolute; inset:0;
+  background:url('./textures/grain.png') repeat;
+  background-size:300px; opacity:.05; mix-blend-mode:overlay;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .controls {
+    top: 14px;
+    right: 14px;
+    gap: 6px;
+  }
+  .ctrl-btn__label {
+    display: none;
+  }
+  .ctrl-btn {
+    padding: 8px 10px;
+  }
+  .modal__card {
+    padding: 22px 18px;
+  }
+  .letter-paper__title {
+    font-size: 32px;
+  }
+  .letter-paper__body {
+    font-size: 17px;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION — skip the film, hand over the finished tree
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  .hero, .flood, .field, .bloom{ display:none !important; }
+  .duet__eyebrow, .duet__sub{ opacity:1; transform:none; filter:none; transition:none; }
+  .duet__name{ clip-path:none; opacity:1; }
+  .duet__name span{
+    filter:drop-shadow(0 0 5px rgba(255,236,255,.35)) drop-shadow(0 2px 4px rgba(10,5,30,.8)) drop-shadow(0 4px 14px rgba(10,5,30,.7));
+  }
+  .duet__heart{ opacity:1; }
+  .duet.is-in .duet__name,
+  .duet.is-in .duet__name span,
+  .duet.is-in .duet__name::after,
+  .duet.is-in .duet__heart,
+  .duet.is-in .duet__heart svg{ animation:none; }
+  .finale__word{
+    opacity:1; clip-path:none; transform:none;
+    filter:drop-shadow(0 0 5px rgba(255,236,255,.35)) drop-shadow(0 2px 4px rgba(10,5,30,.8)) drop-shadow(0 4px 14px rgba(10,5,30,.7));
+  }
+  .finale.is-in .finale__word{ animation:none; }
+  .act6__eyebrow{ opacity:1; transform:none; filter:none; transition:none; }
+  .act6__word{ opacity:1; }
+  .a6ch{ opacity:1; transform:none; animation:none !important; }
+  .act6__rule{ opacity:1; transform:none; transition:none; }
+  .act6.is-in .act6__word,
+  .act6.is-in .act6__word::after,
+  .act6.is-in .a6ch,
+  .act6.is-in .act6__eyebrow::before,
+  .act6.is-in .act6__eyebrow::after,
+  .act6.is-in .act6__ring,
+  .act6.is-in .act6__ring::after{ animation:none; }
+}

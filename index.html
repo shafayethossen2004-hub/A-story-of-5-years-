@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Moonlit Bloom — An Interactive Love Experience</title>
+  <meta name="description" content="A romantic, interactive love letter experience under a starry sky featuring blooming blossom trees, kinetic typography, and custom ambient melodies." />
+  <meta name="theme-color" content="#1b1238" />
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Moonlit Bloom — An Interactive Love Experience" />
+  <meta property="og:description" content="A romantic interactive confession created with kinetic typography and procedural blossom tree animations." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&w=1200&q=80" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 22'%3E%3Cpath d='M12 20C5.5 15 1.5 11.4 1.5 6.9 1.5 3.6 4 1.5 7 1.5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3 0 5.5 2.1 5.5 5.4C23.5 11.4 19.5 15 12 20Z' fill='%23d4235c'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="./gsap.min.js"></script>
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="stylesheet" href="./romantic.css" />
+</head>
+<body>
+  <main class="scene">
+
+    <!-- Canvas Blossom Tree Engine -->
+    <canvas id="tree" class="tree" aria-label="A blossom tree grows and blooms into a heart made of petals" role="img"></canvas>
+
+    <!-- Floating Top Toolbar Controls -->
+    <header class="controls" aria-label="Experience controls">
+      <button class="ctrl-btn" id="btnSound" type="button" title="Toggle Romantic Music" aria-label="Toggle Romantic Music">
+        <svg class="icon icon-sound-on" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke-linecap="round"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke-linecap="round"/>
+        </svg>
+        <svg class="icon icon-sound-off" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"/>
+          <line x1="23" y1="9" x2="17" y2="15" stroke-linecap="round"/>
+          <line x1="17" y1="9" x2="23" y2="15" stroke-linecap="round"/>
+        </svg>
+        <span class="ctrl-btn__label">Sound</span>
+      </button>
+
+      <button class="ctrl-btn" id="btnLetter" type="button" title="Open Love Letter" aria-label="Open Love Letter">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+        <span class="ctrl-btn__label">Love Note</span>
+      </button>
+
+      <button class="ctrl-btn" id="btnCustomize" type="button" title="Personalize Experience" aria-label="Personalize Experience">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span class="ctrl-btn__label">Customize</span>
+      </button>
+    </header>
+
+    <!-- Act 1: The Beating Heart Hero -->
+    <section class="hero" id="hero" role="button" tabindex="0" aria-label="Touch the heart to open your love letter">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="hero__motes" id="motes" aria-hidden="true"></div>
+
+      <p class="hero__eyebrow" id="eyebrow">for the one my heart beats for</p>
+
+      <div class="targetWrap" aria-hidden="true">
+        <div class="target" id="target">
+          <span class="heart__glow" aria-hidden="true"></span>
+          <span class="target__heart" id="targetHeart">
+            <svg class="heart__svg" viewBox="0 0 100 92" aria-hidden="true">
+              <defs>
+                <radialGradient id="hg" cx="38%" cy="30%" r="80%">
+                  <stop offset="0%"  stop-color="#ffd9e4" />
+                  <stop offset="42%" stop-color="#ff6f97" />
+                  <stop offset="82%" stop-color="#d81e57" />
+                  <stop offset="100%" stop-color="#9d0f3e" />
+                </radialGradient>
+                <linearGradient id="hsheen" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"  stop-color="rgba(255,255,255,.85)" />
+                  <stop offset="34%" stop-color="rgba(255,255,255,0)" />
+                </linearGradient>
+              </defs>
+              <path d="M50 86.5C26 68 10.5 53.6 10.5 34.6 10.5 20.4 21 11 33.2 11c8.6 0 14.2 4.7 16.8 11.4C52.6 15.7 58.2 11 66.8 11 79 11 89.5 20.4 89.5 34.6 89.5 53.6 74 68 50 86.5Z" fill="url(#hg)" />
+              <path d="M50 86.5C26 68 10.5 53.6 10.5 34.6 10.5 20.4 21 11 33.2 11c8.6 0 14.2 4.7 16.8 11.4C52.6 15.7 58.2 11 66.8 11 79 11 89.5 20.4 89.5 34.6 89.5 53.6 74 68 50 86.5Z" fill="url(#hsheen)" opacity=".7" />
+              <ellipse cx="34" cy="30" rx="8.5" ry="5.4" fill="#fff" opacity=".72" style="mix-blend-mode:screen" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <p class="hero__hint" id="hint">touch the heart</p>
+    </section>
+
+    <!-- Act 2: Moonflower Burst Transition -->
+    <div class="flood" id="flood" aria-hidden="true"></div>
+
+    <!-- Act 3: Kinetic Typography Confession -->
+    <div class="field" id="field" aria-hidden="true">
+      <div class="blob blob--1"></div>
+      <div class="blob blob--2"></div>
+      <div class="blob blob--3"></div>
+      <div class="fgrid" id="fgrid"></div>
+      <div class="fvignette"></div>
+
+      <div class="camera" id="camera">
+        <p class="kEyebrow" id="kEyebrow">of all the hearts in all the world&hellip;</p>
+        <h2 class="headline" id="headline">
+          <span class="hl__flash" aria-hidden="true"></span>
+          <span class="hl__sheen" aria-hidden="true"></span>
+          <span class="hl__line"><span class="mask"><span class="hl__word" id="wLine1">Will You</span></span></span>
+          <span class="hl__line"><span class="mask"><span class="hl__word" id="wLine2">Be Mine?</span></span></span>
+        </h2>
+        <span class="hl__shock" aria-hidden="true"></span>
+        <svg class="uline" id="uline" viewBox="0 0 300 26" fill="none" aria-hidden="true">
+          <path class="uline__path" d="M8 16C56 7 132 4 178 6c30 1 78 5 114 12-40 3-108 4-176 3"
+                stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <p class="kSub" id="kSub">I promise, this is only the beginning</p>
+      </div>
+
+      <div class="curtain curtain--left" id="curtainL"><span class="curtain__edge" aria-hidden="true"></span></div>
+      <div class="curtain curtain--right" id="curtainR"><span class="curtain__edge" aria-hidden="true"></span></div>
+    </div>
+
+    <div class="bloom" id="bloom" aria-hidden="true"></div>
+
+    <!-- Act 4 & 5: Duet Under the Stars -->
+    <div class="duet" id="wish" aria-hidden="true">
+      <p class="duet__eyebrow" id="dEyebrow">you &amp; me, under the stars</p>
+      <h2 class="duet__name duet__name--you" id="youName"><span>you</span></h2>
+      <span class="duet__heart" id="dHeart">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffb7d9"/>
+              <stop offset="1" stop-color="#e0458c"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#hGrad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </span>
+      <h2 class="duet__name duet__name--me" id="meName"><span>me</span></h2>
+      <p class="duet__sub" id="dSub">here&rsquo;s to us, and a love that blooms</p>
+    </div>
+
+    <div class="finale" id="finale" aria-hidden="true">
+      <h2 class="finale__word" id="finaleWord">I love you</h2>
+    </div>
+
+    <!-- Act 6: Celestial Starfield & Butterfly Flight -->
+    <div class="act6" id="act6" aria-hidden="true">
+      <canvas id="a6Canvas"></canvas>
+      <div class="act6__text">
+        <p class="act6__eyebrow" id="a6Eyebrow">two wings, one sky</p>
+        <h2 class="act6__word" id="a6Word">fly with me<span class="act6__ring" aria-hidden="true"></span></h2>
+        <span class="act6__rule" aria-hidden="true"></span>
+      </div>
+    </div>
+
+    <button class="replay" id="replay" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true" width="15" height="15">
+        <path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z" fill="currentColor" />
+      </svg>
+      Replay
+    </button>
+
+    <div class="grade" aria-hidden="true">
+      <div class="grade__vignette"></div>
+      <div class="grade__grain"></div>
+    </div>
+  </main>
+
+  <!-- Interactive Personalization Modal Dialog -->
+  <div class="modal" id="customModal" aria-hidden="true" role="dialog" aria-labelledby="customTitle">
+    <div class="modal__backdrop" id="modalBackdrop"></div>
+    <div class="modal__card">
+      <button class="modal__close" id="modalClose" type="button" aria-label="Close modal">&times;</button>
+      <h3 class="modal__title" id="customTitle">Craft Your Personal Message</h3>
+      <p class="modal__subtitle">Customize the names, proposal words, and letter to create a unique moment.</p>
+
+      <form id="customForm" class="modal__form" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inputYou">Partner's Name</label>
+            <input type="text" id="inputYou" placeholder="e.g. Maria" maxLength="24" value="you" />
+          </div>
+          <div class="form-group">
+            <label for="inputMe">Your Name</label>
+            <input type="text" id="inputMe" placeholder="e.g. Saklin" maxLength="24" value="me" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="inputLine1">Headline Line 1</label>
+            <input type="text" id="inputLine1" placeholder="e.g. Will You" maxLength="30" value="Will You" />
+          </div>
+          <div class="form-group">
+            <label for="inputLine2">Headline Line 2</label>
+            <input type="text" id="inputLine2" placeholder="e.g. Be Mine?" maxLength="30" value="Be Mine?" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inputSub">Promise Subtitle</label>
+          <input type="text" id="inputSub" placeholder="e.g. I promise, this is only the beginning" maxLength="80" value="I promise, this is only the beginning" />
+        </div>
+
+        <div class="form-group">
+          <label for="inputLetter">Personal Handwritten Note</label>
+          <textarea id="inputLetter" rows="4" placeholder="Write your romantic letter here...">Every second spent with you feels like a quiet miracle. You are my home, my favorite adventure, and the sweetest part of every day. Here is to us, forever and always.</textarea>
+        </div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--secondary" id="btnResetCustom">Reset Defaults</button>
+          <button type="submit" class="btn btn--primary" id="btnSaveCustom">Save &amp; Apply</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Wax-Sealed Handwritten Love Letter Modal -->
+  <div class="modal modal--letter" id="letterModal" aria-hidden="true" role="dialog" aria-labelledby="letterTitle">
+    <div class="modal__backdrop" id="letterBackdrop"></div>
+    <div class="letter-card">
+      <button class="modal__close" id="letterClose" type="button" aria-label="Close love letter">&times;</button>
+      <div class="envelope" id="envelopeCard">
+        <div class="envelope__stamp">♥</div>
+        <div class="envelope__header">
+          <span class="envelope__to">To my favorite person,</span>
+        </div>
+        <div class="letter-paper">
+          <h3 class="letter-paper__title" id="letterTitle">Dearest <span id="letterToName">you</span>,</h3>
+          <div class="letter-paper__body" id="letterTextDisplay">
+            Every second spent with you feels like a quiet miracle. You are my home, my favorite adventure, and the sweetest part of every day. Here is to us, forever and always.
+          </div>
+          <p class="letter-paper__sign">With all my love,<br/><span id="letterFromName">me</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="sr-only">Will you be mine? Forever and always.</p>
+
+  <script src="./romantic.js" type="module"></script>
+</body>
+</html>
+
